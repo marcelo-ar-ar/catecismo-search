@@ -24,7 +24,7 @@ Este proyecto utiliza un modelo de licencia mixta para proteger tanto la lógica
 - **Código Fuente** (Lógica, scripts JS, estructura HTML): Licenciado bajo la [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 - **Contenido Textual** (Textos, artículos, guías dentro de los archivos): Licenciado bajo [Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)](https://creativecommons.org).
 
-Consulte los archivos `LICENSE-CODE.txt` y `LICENSE-CONTENT.txt` en la raíz para ver los términos completos.
+Consulte los archivos `LICENSE` y `LICENSE-CONTENT` en la raíz para ver los términos completos.
 
 SPDX-License-Identifier: Apache-2.0 AND CC-BY-NC-SA-4.0
 
