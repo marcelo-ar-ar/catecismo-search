@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<!-- 
+/*
+ * Copyright (c) 2026 Marcelo Andrés Reynoso
+ * 
+ * LICENCIA MIXTA DE SOFTWARE Y CONTENIDO:
+ * 
+ * 1. CÓDIGO FUENTE (Lógica de programación, scripts, funciones): 
+ *    Licenciado bajo la Licencia Apache, Versión 2.0 (la "Licencia"); 
+ *    no puede usar este código excepto en cumplimiento con la Licencia. 
+ *    Puede obtener una copia en: http://www.apache.org
+ * 
+ * 2. CONTENIDO TEXTUAL (Cualquier texto, documentación o activos creativos): 
+ *    Licenciado bajo Creative Commons Attribution-ShareAlike 3.0 Unported 
+ *    (CC BY-SA 3.0). Ver: https://creativecommons.org
+ *    Este trabajo es un traducción al español de la obra Thesaurus Precum de León Dehon
+ *    que ha pasado al domino público.
+ * 
+ * Salvo que lo exija la ley aplicable o se acuerde por escrito, el software 
+ * distribuido bajo la Licencia se distribuye "TAL CUAL", SIN GARANTÍAS NI 
+ * CONDICIONES DE NINGÚN TIPO, ya sean expresas o implícitas.
+ * 
+ * SPDX-License-Identifier: Apache-2.0 AND CC-BY-NC-SA-4.0
+ */
+-->
+
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <!-- Meta Viewport optimizado para evitar zoom accidental según Google Chrome Guidelines -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Buscador del Catecismo</title>
+    <script src="catecismo_data.js"></script>
+<style>
+    /* Definición de base rem*/
+    :root {
+        font-size: 1rem;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: Roboto, "Droid Sans", 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #eee; 
+        /* Padding reducido en móvil para ganar espacio */
+        padding: 1rem; 
+        line-height: 1.5;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+        background-color: white;
+        /* Padding proporcional */
+        padding: 1.5rem;
+        border-radius: 0.625rem; /* 10px */
+        box-shadow: 0 0.125rem 0.625rem rgba(0,0,0,0.1);
+    }
+
+    h1 {
+        color: #333;
+        margin-bottom: 1.875rem; /* 30px */
+        text-align: center;
+        font-size: 1.75rem; /* Un poco más pequeño para móviles */
+    }
+
+    .search-box {
+        margin-bottom: 1.875rem;
+    }
+
+    .input-group {
+        margin-bottom: 1rem;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #555;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        /* Padding generoso para facilitar el toque */
+        padding: 0.8rem; 
+        border: 2px solid #ddd;
+        border-radius: 0.5rem;
+        font-size: 1rem; /* Mínimo 16px para evitar zoom automático en iOS */
+        transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus {
+        outline: none;
+        border-color: #4CAF50;
+    }
+
+    .help-text {
+        font-size: 0.75rem; /* 12px */
+        color: #777;
+        margin-top: 0.3125rem;
+    }
+
+    /* Optimización de Botones para Móvil */
+    .button-group {
+        display: flex;
+        flex-direction: column; /* Botones uno sobre otro en móvil */
+        gap: 0.75rem;
+    }
+
+    button {
+        width: 100%; /* Ancho completo para facilitar clic con pulgar */
+        background-color: #4CAF50;
+        color: white;
+        padding: 1rem; /* Más alto para "touch targets" */
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: background-color 0.3s;
+        min-height: 44px;
+    }
+
+    button:hover {
+        background-color: #45a049;
+    }
+
+    .clear-btn {
+        background-color: #f44336;
+    }
+
+    .clear-btn:hover {
+        background-color: #da190b;
+    }
+
+    /* Resultados y Contenido */
+    .results {
+        margin-top: 2rem;
+    }
+
+    .result-count {
+        color: #666;
+        margin-bottom: 1rem;
+        font-style: italic;
+        font-size: 0.9rem;
+    }
+
+    .paragraph {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-left: 0.25rem solid #4CAF50;
+        background-color: #f9f9f9;
+        border-radius: 0.3125rem;
+    }
+
+    .paragraph-number {
+        font-weight: bold;
+        color: #4CAF50;
+        margin-bottom: 0.5rem;
+    }
+
+    .paragraph-text {
+        line-height: 1.6;
+        color: #333;
+        font-size: 1rem;
+        word-wrap: break-word; /* Evita que palabras largas rompan el diseño */
+    }
+
+    .highlight {
+        background-color: #ffeb3b;
+        padding: 0.125rem 0.25rem;
+        border-radius: 0.125rem;
+    }
+
+    .no-results {
+        text-align: center;
+        color: #999;
+        padding: 2.5rem;
+        font-size: 1.125rem;
+    }
+
+        /* Estados de Foco de Lectura */
+        .focused { opacity: 1 !important; transform: scale(1.01); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .unfocused { opacity: 0.35; }
+
+    /* Media Queries para Tablets y Desktop */
+    @media (min-width: 600px) {
+        body {
+            padding: 2rem;
+        }
+
+        .container {
+            padding: 2rem;
+        }
+
+        .button-group {
+            flex-direction: row; /* Botones uno al lado del otro en pantallas grandes */
+        }
+
+        button {
+            width: auto; /* El botón solo ocupa lo que necesita */
+            padding: 0.75rem 1.875rem;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+        }
+    }
+
+  #tabla-abreviaturas {
+    display: none; /* Inicia oculta */
+    margin-top: 10px;
+  }
+  .boton-toggle {
+    background: black;
+    font-size: inherit;
+    padding: 1rem; /* Más alto para "touch targets" */
+    min-height: 44px;
+  }
+
+  .boton-toggle:hover {
+     background: gray;
+  }    
+
+
+</style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Buscador del Catecismo de la Iglesia Católica</h1>
+        
+        <div class="search-box">
+            <div class="input-group">
+                <label for="numberSearch">Buscar por número o rango:</label>
+                <input type="text" id="numberSearch" placeholder="Ej: 1, 5-10, 100">
+                <div class="help-text">Puedes buscar un número (1), varios separados por comas (1,5,10) o un rango (1-10)</div>
+            </div>
+            
+            <div class="input-group">
+                <label for="textSearch">Buscar por palabras:</label>
+                <input type="text" id="textSearch" placeholder="Ej: fe, amor, Dios">
+                <div class="help-text">Busca palabras, frases, o citas bíblicas en el contenido de los párrafos</div>
+            </div>
+            
+            <div class="button-group"> 
+                <button onclick="toggleTablaOff(); search();">Buscar</button>
+                <button class="clear-btn" onclick="clearSearch(); toggleTablaOff();">Limpiar</button>
+            </div> 
+        </div>
+        
+
+
+            <!-- Elemento clickable -->
+            <div class="button-group"> 
+                <button type="button" class="boton-toggle" onclick="toggleTabla()"> Siglas usuales </button>
+            </div> 
+<!-- Contenedor de la tabla -->
+<div id="tabla-abreviaturas">
+  <table border="0" cellpadding="0" cellspacing="0" bordercolor="#111111" width="297">
+    <thead> 
+      <tr>
+        <th align="left" valign="top">Sigla</th>
+        <th align="left" valign="top">Libro</th>
+      </tr>
+    </thead>
+        <tbody> 
+             <tr> 
+              <td width="98">Ap</td> 
+              <td width="196">Apocalipsis</td> 
+             </tr> 
+             <tr> 
+              <td width="98">1 Co</td> 
+              <td width="196">1 Corintios</td> 
+             </tr> 
+             <tr> 
+              <td width="98">2 Co</td> 
+              <td width="196">2 Corintios</td> 
+             </tr> 
+             <tr> 
+              <td width="98">Col </td> 
+              <td width="196">Colosenses</td> 
+             </tr> 
+             <tr> 
+              <td width="98">Dt </td> 
+              <td width="196">Deuteronomio</td> 
+             </tr> 
+             <tr> 
+              <td width="98">Ef </td> 
+              <td width="196">Efesios</td> 
+             </tr> 
+             <tr> 
+              <td width="98">Ex </td> 
+              <td width="196">&Eacute;xodo</td> 
+             </tr> 
+             <tr> 
+              <td width="98">Ez </td> 
+              <td width="196">Ezequiel</td> 
+             </tr> 
+             <tr> 
+              <td width="98">Flp </td> 
+              <td width="196">Filipenses</td> 
+             </tr> 
+             <tr> 
+              <td width="98">Ga </td> 
+              <td width="196">G&aacute;latas</td> 
+             </tr> 
+             <tr> 
+              <td width="98">Gn </td> 
+              <td width="196">G&eacute;nesis</td> 
+             </tr> 
+             <tr> 
+              <td width="98">Hb </td> 
+              <td width="196">Hebreos</td> 
+             </tr> 
+             <tr> 
+              <td width="98">Hch </td> 
+              <td width="196">Hechos</td> 
+             </tr> 
+             <tr> 
+              <td width="98">Is </td> 
+              <td width="196">Isa&iacute;as</td> 
+             </tr> 
+             <tr> 
+              <td width="98">Jn </td> 
+              <td width="196">Juan</td> 
+             </tr> 
+             <tr> 
+              <td width="98">1 Jn </td> 
+              <td width="196">1 Juan</td> 
+             </tr> 
+             <tr> 
+              <td width="98">Lc </td> 
+              <td width="196">Lucas</td> 
+             </tr> 
+             <tr> 
+              <td width="98">2 M </td> 
+              <td width="196">2 Macabeos</td> 
+             </tr> 
+             <tr> 
+              <td width="98">Mc</td> 
+              <td width="196">Marcos</td> 
+             </tr> 
+             <tr> 
+              <td width="98">Mt </td> 
+              <td width="196">Mateo</td> 
+             </tr> 
+             <tr> 
+              <td width="98">1 P </td> 
+              <td width="196">1 Pedro</td> 
+             </tr> 
+             <tr> 
+              <td width="98">2 P </td> 
+              <td width="196">2 Pedro</td> 
+             </tr> 
+             <tr> 
+              <td width="98">1 R </td> 
+              <td width="196">1 Reyes</td> 
+             </tr> 
+             <tr> 
+              <td width="98">Rm </td> 
+              <td width="196">Romanos</td> 
+             </tr> 
+             <tr> 
+              <td width="98">Sal </td> 
+              <td width="196">Salmos</td> 
+             </tr> 
+             <tr> 
+              <td width="98">St </td> 
+              <td width="196">Santiago</td> 
+             </tr> 
+             <tr> 
+              <td width="98">1 Tm </td> 
+              <td width="196">1 Timoteo</td> 
+             </tr> 
+             <tr> 
+              <td width="98">2 Tm </td> 
+              <td width="196">2 Timoteo</td> 
+             </tr> 
+             <tr> 
+              <td width="98">1 Ts&nbsp; </td> 
+              <td width="196">1 Tesalonicenses</td> 
+             </tr> 
+             <tr> 
+              <td width="98">Tt</td> 
+              <td width="196">Tito</td> 
+             </tr> 
+            </tbody>   
+    </table>
+</div>
+
+        <div class="results" id="results"></div>
+
+<div style="padding: 1rem; margin-bottom: 1rem; border: 1px; background-color: #eee; font-size: 12px; color: #777;">
+Content in this page is licensed under <a rel="nofollow" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0 license</a> by Marcelo Andrés Reynoso.
+This work is a spanish translation of the work “<a rel="nofollow" href="https://www.intratext.com/IXT/FRA0013/_INDEX.HTM">Catéchisme de l'Église Catholique</a>” 
+by <a rel="nofollow" class="external text" href="https://www.intratext.com">The IntraText Digital Library</a>, licensed under the <a rel="nofollow" href="https://www.intratext.com/info/copyENG.htm">CC BY-NC-SA 3.0 license</a>.
+</div>
+
+    </div>
+
+<script>
+
+        function parseNumberInput(input) {
+            const numbers = new Set();
+            const parts = input.split(',').map(s => s.trim());
+            
+            for (const part of parts) {
+                if (part.includes('-')) {
+                    const [start, end] = part.split('-').map(n => parseInt(n.trim()));
+                    if (!isNaN(start) && !isNaN(end)) {
+                        for (let i = start; i <= end; i++) {
+                            numbers.add(i);
+                        }
+                    }
+                } else {
+                    const num = parseInt(part);
+                    if (!isNaN(num)) {
+                        numbers.add(num);
+                    }
+                }
+            }
+            
+            return Array.from(numbers).sort((a, b) => a - b);
+        }
+
+        function highlightText(text, searchTerms) {
+            if (!searchTerms) return text;
+            
+            let highlighted = text;
+            const terms = searchTerms.toLowerCase().split(/\s+/);
+            
+            terms.forEach(term => {
+                if (term.length > 2) {
+                    const regex = new RegExp(`(${term})`, 'gi');
+                    highlighted = highlighted.replace(regex, '<span class="highlight">$1</span>');
+                }
+            });
+            
+            return highlighted;
+        }
+
+        function search() {
+            const numberInput = document.getElementById('numberSearch').value.trim();
+            const textInput = document.getElementById('textSearch').value.trim().toLowerCase();
+            const resultsDiv = document.getElementById('results');
+            
+            let filteredResults = [...catecismo];
+            
+            // Filtrar por números
+            if (numberInput) {
+                const numbers = parseNumberInput(numberInput);
+                filteredResults = filteredResults.filter(p => numbers.includes(p.numero));
+            }
+            
+            // Filtrar por texto
+            if (textInput) {
+                filteredResults = filteredResults.filter(p => 
+                    p.texto.toLowerCase().includes(textInput)
+                );
+            }
+            
+            // Mostrar resultados
+            if (filteredResults.length === 0) {
+                resultsDiv.innerHTML = '<div class="no-results">No se encontraron resultados</div>';
+                return;
+            }
+            
+            let html = `<div class="result-count">Se encontraron ${filteredResults.length} párrafo(s)</div>`;
+            
+            filteredResults.forEach(p => {
+                const highlightedText = highlightText(p.texto, textInput);
+                html += `
+                    <div class="paragraph">
+                        <div class="paragraph-number">§ ${p.numero}</div>
+                        <div class="paragraph-text">${highlightedText}</div>
+                    </div>
+                `;
+            });
+            
+            resultsDiv.innerHTML = html;
+        }
+
+        function clearSearch() {
+            document.getElementById('numberSearch').value = '';
+            document.getElementById('textSearch').value = '';
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // Permitir búsqueda con Enter
+        document.getElementById('numberSearch').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') search();
+        });
+        
+        document.getElementById('textSearch').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') search();
+        });
+
+  function toggleTabla() {
+    const tabla = document.getElementById('tabla-abreviaturas');
+    if (tabla.style.display === 'none' || tabla.style.display === '') {
+      tabla.style.display = 'block';
+    } else {
+      tabla.style.display = 'none';
+    }
+  }
+
+function toggleTablaOff() {
+    const tabla = document.getElementById('tabla-abreviaturas');
+    if (tabla.style.display === 'block') {
+      tabla.style.display = 'none';
+    }
+  }
+
+    </script>
+</body>
+</html>
